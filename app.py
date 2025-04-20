@@ -98,7 +98,10 @@ def main():
                 break
             
             elif task == "1" or task == "2" or task == "3":
-                article_types = ["a", "b", "c", "d", "e", "f", "g", "h", "y"]
+                article_types = ["a: Human Necessities", "b: Performing Operations; Transporting", 
+                                "c: Chemistry; Metallurgy", "d: Textiles; Paper", "e: Fixed Constructions", 
+                                "f: Mechanical Engineering; Lightning; Heating; Weapons; Blasting", "g: Physics", 
+                                "h: Electricity", "y: General tagging of new or cross-sectional technology"]
                 
                 for idx, article in enumerate(article_types, start=1):
                     print(f"{idx}. {article}")
@@ -129,7 +132,7 @@ def main():
                     
                     print("\nProcessing your query...\n")
                     try:
-                        response = RAG_Retriever(gen_model_name, tokenizer, model).get_query_answer([str(article_type)], str(user_query), str("RAG"))
+                        response = RAG_Retriever(gen_model_name, tokenizer, model,3).get_query_answer([str(article_type)], str(user_query), str("RAG"))
                         print("\nRAG Retriever Output:\n" + response)
                     except Exception as e:
                         print(f"Error while processing query: {e}")
@@ -166,8 +169,7 @@ def main():
                         continue
                 
                     try:
-                        extractor = PatentExtractor(gen_model_name, tokenizer, model)
-                        retriever = RAG_Retriever(gen_model_name, tokenizer, model)
+                        retriever = RAG_Retriever(gen_model_name, tokenizer, model,1)
                         similarity_finder = PatentSimilarityChecker(retriever, tokenizer, model)
                         results = similarity_finder.find_similar_patents(full_text,article_type)
                         print('Find Similar Patents:\n',results)

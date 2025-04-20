@@ -10,28 +10,24 @@ from llm_config import llm_prompts
 
 class PatentExtractor:
     def __init__(self, gen_model_name, tokenizer, model):
-        load_dotenv()
         self.gen_model_name = gen_model_name
         self.tokenizer = tokenizer
         self.model = model
-        self.index_file_path = 'vector_index.pkl'
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.loader = Loader()
         self.llm_response_generator = LLMResponseGenerator(self.model,self.tokenizer)
-        self.preprocessor = Preprocessor(self.tokenizer, self.gen_model_name, self.index_file_path)
+        self.preprocessor = Preprocessor(self.tokenizer, self.gen_model_name)
 
     def extract_sections(self, generated):
         # Define regex patterns for claims and figures
-        claims_pattern = r"\*\*\*Claims\*\*\*:\s*(.*?)(?=\*\*\*Figures\*\*\*|$)"
-        figures_pattern = r"\*\*\*Figures\*\*\*:\s*(.*)"
+        claims_pattern = r"\*\*\*Claims\*\*\*:\s*(.*?)(?=\*\*\*Figure Descriptions\*\*\*|$)"
+        figures_pattern = r"\*\*\*Figure Descriptions\*\*\*:\s*(.*)"
 
         claims_match = re.search(claims_pattern, generated, re.DOTALL)
         claims = claims_match.group(1).strip() if claims_match else ""
 
         figures_match = re.search(figures_pattern, generated, re.DOTALL)
         figures = figures_match.group(1).strip() if figures_match else ""
-
         return claims, figures
     
     def process_patents(self, article_type, index):

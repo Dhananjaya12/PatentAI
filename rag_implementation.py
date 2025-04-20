@@ -20,13 +20,12 @@ from llm_config import llm_prompts
 import time
 
 class RAG_Retriever():
-    def __init__(self, gen_model_name, tokenizer, model):
+    def __init__(self, gen_model_name, tokenizer, model, top_k):
         load_dotenv()
         self.access_token = os.getenv("ACCESS_TOKEN")
         self.gen_model_name = gen_model_name #"microsoft/phi-4" #gpt2, meta-llama/Llama-2-7b-chat-hf, meta-llama/Meta-Llama-3.1-8B-Instruct, microsoft/phi-4, meta-llama/Meta-Llama-3.1-8B-Instruct
         self.embedding_model_name = "llama3.1:8b" #"llama3.1:8b", sentence-transformers/all-MiniLM-L6-v2, meta-llama/Llama-2-7b-chat-hf, meta-llama/Meta-Llama-3.1-8B-Instruct
-        self.index_file_path = 'vector_index.pkl'
-        self.top_k = 3
+        self.top_k = top_k
         self.tokenizer = tokenizer
         self.model = model
         self.embed_model = OllamaEmbedding(model_name=self.embedding_model_name)
@@ -38,7 +37,7 @@ class RAG_Retriever():
         Settings.chunk_overlap = 50
 
         self.loader = Loader()
-        self.preprocessor = Preprocessor(self.tokenizer, self.gen_model_name, self.index_file_path)
+        self.preprocessor = Preprocessor(self.tokenizer, self.gen_model_name)
         self.llm_response_generator = LLMResponseGenerator(self.model,self.tokenizer)
             
     def prepare_context_response(self, response):
@@ -78,7 +77,6 @@ class RAG_Retriever():
                                 ]
         
         response = self.llm_response_generator.get_prompt_output(prompt_in_chat_format)
-        # print('')
         return response
 
 # Custom retriever class
@@ -116,7 +114,7 @@ class CustomRetriever(VectorIndexRetriever):
         print(f"Query Tokens ({query_bundle.query_str}): {len(tokenized_query)}")
         # tokenized_query = query_bundle.query_str.split()  # Tokenize the query
         bm25_scores = bm25.get_scores(tokenized_query)
-
+        print('len(bm25_scores)', len(bm25_scores))
         # for doc_vector in doc_vectors:  # Use self._index
         #     cosine_sim = cosine_similarity(np.array(query_vector).reshape(1, -1), np.array(doc_vector).reshape(1, -1))[0][0]
         #     cosine_similarities.append(cosine_sim)
@@ -132,12 +130,12 @@ class CustomRetriever(VectorIndexRetriever):
 
         # Get indices of top-k similar documents based on Manhattan similarities
         top_k_indices = np.argsort(bm25_scores)[-self.similarity_top_k:][::-1]
-
+        print('len(top_k_indices)', len(top_k_indices))
+        print('top_k_indices', top_k_indices)
+        print('len(documents)',len(documents))
         retrieved_text = ' '.join([documents[i].text for i in top_k_indices])
-        # print('retrieved text', retrieved_text)
+        print('retrieved text', retrieved_text)
         retrieved_tokens = len(self.tokenizer(retrieved_text)['input_ids'])
-
-        # print(query_bundle.query_str)
         print('Retrieved token length = ',len(self.tokenizer(' '.join([list(self._index.docstore.docs.values())[i].text for i in top_k_indices]))['input_ids'] ))
 
         return [
