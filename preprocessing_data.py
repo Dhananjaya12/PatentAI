@@ -29,9 +29,10 @@ class Preprocessor():
         return token_lengths
 
     def prepare_index(self, documents, article_type):
-        if os.path.exists(os.path.join(f'{self.gen_model_name.split("/")[1]}',f'{self.gen_model_name.split("/")[1]}_' + 'vector_index' + f'_{article_type}' + '.pkl')):
+
+        if os.path.exists(os.path.join('saved_indexes',f'{self.gen_model_name.split("/")[-1]}',f'{self.gen_model_name.split("/")[-1]}_' + 'vector_index' + f'_{article_type}' + '.pkl')):
             start_time = time.time()
-            with open(os.path.join(f'{self.gen_model_name.split("/")[1]}',f'{self.gen_model_name.split("/")[1]}_' + 'vector_index' + f'_{article_type}' + '.pkl'), "rb") as f:
+            with open(os.path.join('saved_indexes',f'{self.gen_model_name.split("/")[-1]}',f'{self.gen_model_name.split("/")[-1]}_' + 'vector_index' + f'_{article_type}' + '.pkl'), "rb") as f:
                 data = pickle.load(f)
             index = data["index"]
             tokenized_docs = data["tokenized_docs"]
@@ -48,7 +49,7 @@ class Preprocessor():
             end_time_tokenizing = time.time()
             print(f"Tokenized docs in time: {end_time_tokenizing - start_time_tokenizing:.4f} seconds")
             
-            with open(os.path.join(f'{self.gen_model_name.split("/")[1]}',f'{self.gen_model_name.split("/")[1]}_' + 'vector_index' + f'_{article_type}' + '.pkl'), "wb") as f:
+            with open(os.path.join('saved_indexes',f'{self.gen_model_name.split("/")[-1]}',f'{self.gen_model_name.split("/")[-1]}_' + 'vector_index' + f'_{article_type}' + '.pkl'), "wb") as f:
                 pickle.dump({"index": index, "tokenized_docs": tokenized_docs}, f)
 
             end_time_index = time.time()
